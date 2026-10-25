@@ -1,0 +1,229 @@
+{
+  "name": "browserkey",
+  "displayName": "BrowserKey: AI API Key Exposure in Frontend Code Checker",
+  "description": "Catches OpenAI, Anthropic, Gemini, Groq, Mistral and other AI provider API keys that end up in the browser: NEXT_PUBLIC_, VITE_, REACT_APP_, EXPO_PUBLIC_, NUXT_PUBLIC_, GATSBY_ and SvelteKit/Astro PUBLIC_ variables holding AI keys, SDK clients created with dangerouslyAllowBrowser: true, server-only keys read in \"use client\" components, keys inlined by vite define, DefinePlugin or next.config env, and hardcoded keys in frontend code. Secrets are always masked, fully offline.",
+  "version": "0.1.0",
+  "publisher": "jaytankdev",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "api key",
+    "secrets",
+    "openai",
+    "anthropic",
+    "gemini",
+    "nextjs",
+    "vite",
+    "dangerouslyAllowBrowser",
+    "environment variables",
+    "security"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:vue",
+    "onLanguage:svelte",
+    "onLanguage:dotenv",
+    "workspaceContains:**/package.json",
+    "workspaceContains:**/.env*",
+    "onStartupFinished",
+    "onView:browserKey.view"
+  ],
+  "main": "./extension.js",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#4A1208",
+    "theme": "dark"
+  },
+  "license": "MIT",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "BrowserKey reads source, .env and build files from local disk."
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "browserKey.rescan",
+        "title": "Rescan Workspace",
+        "category": "BrowserKey",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "browserKey.applyFix",
+        "title": "Apply Quick Fix",
+        "category": "BrowserKey",
+        "icon": "$(lightbulb-autofix)"
+      },
+      {
+        "command": "browserKey.openReference",
+        "title": "Open Framework or SDK Docs",
+        "category": "BrowserKey",
+        "icon": "$(book)"
+      },
+      {
+        "command": "browserKey.openFinding",
+        "title": "Go to Finding",
+        "category": "BrowserKey"
+      },
+      {
+        "command": "browserKey.focusView",
+        "title": "Show Browser Key Checks",
+        "category": "BrowserKey"
+      },
+      {
+        "command": "browserKey.openSettings",
+        "title": "Open Settings",
+        "category": "BrowserKey",
+        "icon": "$(gear)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "browserKey.openFinding",
+          "when": "false"
+        },
+        {
+          "command": "browserKey.applyFix",
+          "when": "false"
+        },
+        {
+          "command": "browserKey.openReference",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "browserKey.rescan",
+          "when": "view == browserKey.view",
+          "group": "navigation@1"
+        },
+        {
+          "command": "browserKey.openSettings",
+          "when": "view == browserKey.view",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "browserKey.applyFix",
+          "when": "view == browserKey.view && viewItem == finding.fixable",
+          "group": "inline@1"
+        },
+        {
+          "command": "browserKey.openReference",
+          "when": "view == browserKey.view && viewItem =~ /^finding/",
+          "group": "inline@2"
+        },
+        {
+          "command": "browserKey.applyFix",
+          "when": "view == browserKey.view && viewItem == finding.fixable",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "browserKey.openReference",
+          "when": "view == browserKey.view && viewItem =~ /^finding/",
+          "group": "1_actions@2"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "browserkey",
+          "title": "BrowserKey",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "browserkey": [
+        {
+          "id": "browserKey.view",
+          "name": "Browser key checks",
+          "icon": "media/activity.svg",
+          "contextualTitle": "BrowserKey"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "browserKey.view",
+        "contents": "BrowserKey is turned off.\n[Open BrowserKey Settings](command:workbench.action.openSettings?%5B%22browserKey%22%5D)",
+        "when": "!browserKey.enabled"
+      },
+      {
+        "view": "browserKey.view",
+        "contents": "Open a folder with a web or mobile frontend and BrowserKey checks whether any AI provider API key reaches the browser.\n[Open Folder](command:vscode.openFolder)",
+        "when": "browserKey.enabled && workbenchState == empty"
+      },
+      {
+        "view": "browserKey.view",
+        "contents": "No AI API key reaches the browser.\nBrowserKey looks for OpenAI, Anthropic, Gemini, Groq, Mistral and other AI keys in NEXT_PUBLIC_, VITE_, REACT_APP_, EXPO_PUBLIC_, NUXT_PUBLIC_, GATSBY_ and PUBLIC_ variables, SDK clients with dangerouslyAllowBrowser: true, server-only keys read in client components, keys inlined by vite define, DefinePlugin or next.config env, and hardcoded keys in frontend files.\n[Rescan Workspace](command:browserKey.rescan)",
+        "when": "browserKey.enabled && workbenchState != empty"
+      }
+    ],
+    "configuration": {
+      "title": "BrowserKey",
+      "properties": {
+        "browserKey.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Check whether AI provider API keys reach browser or app bundles."
+        },
+        "browserKey.rules": {
+          "type": "object",
+          "default": {},
+          "properties": {
+            "BK001": { "type": "string", "enum": ["error", "warning", "information", "hint", "off"], "description": "Public-prefixed variable holds an AI provider key (.env, CI, Dockerfile, compose, nuxt runtimeConfig.public)." },
+            "BK002": { "type": "string", "enum": ["error", "warning", "information", "hint", "off"], "description": "Public AI key variable read in client code." },
+            "BK003": { "type": "string", "enum": ["error", "warning", "information", "hint", "off"], "description": "SDK client created with dangerouslyAllowBrowser: true (default: error, information when the key comes from the user)." },
+            "BK004": { "type": "string", "enum": ["error", "warning", "information", "hint", "off"], "description": "Server-only AI key read in a client-side file." },
+            "BK005": { "type": "string", "enum": ["error", "warning", "information", "hint", "off"], "description": "AI key inlined into the bundle by vite define, DefinePlugin, EnvironmentPlugin, next.config env or envPrefix." },
+            "BK006": { "type": "string", "enum": ["error", "warning", "information", "hint", "off"], "description": "Hardcoded AI provider key in frontend code." }
+          },
+          "additionalProperties": false,
+          "markdownDescription": "Severity per rule, or `off`, e.g. `{ \"BK004\": \"information\", \"BK003\": \"warning\" }`. Defaults: BK004 warning, all others error (BK003 is information when the key comes from a user-supplied field)."
+        },
+        "browserKey.extraPublicPrefixes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "Extra variable name prefixes that your build exposes to client code, e.g. `[\"STORYBOOK_\", \"APP_\"]`. Built in: `NEXT_PUBLIC_`, `VITE_`, `REACT_APP_`, `EXPO_PUBLIC_`, `NUXT_PUBLIC_`, `GATSBY_`, and `PUBLIC_` in SvelteKit and Astro projects. A Vite `envPrefix` or SvelteKit `publicPrefix` written as a string literal in the config file is picked up automatically."
+        },
+        "browserKey.ignoreNames": {
+          "type": "string",
+          "default": "",
+          "maxLength": 200,
+          "markdownDescription": "Regular expression for variable names that are never reported, e.g. `^NEXT_PUBLIC_.*_PROXY_KEY$` for a key to your own proxy. At most 200 characters. In an untrusted workspace only your user setting is used."
+        },
+        "browserKey.maxFiles": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 1,
+          "description": "Maximum number of files scanned in the workspace (open files are always checked). Files over 1 MB are skipped."
+        },
+        "browserKey.exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/out/**", "**/vendor/**", "**/.next/**", "**/.nuxt/**", "**/.output/**", "**/.svelte-kit/**", "**/coverage/**"],
+          "markdownDescription": "Glob patterns (workspace-relative) that are never scanned. `node_modules`, `.git`, `dist`, `build` and `vendor` are always excluded. In an untrusted workspace only your user setting is used."
+        }
+      }
+    }
+  }
+}
